@@ -1,0 +1,30 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+*.user
+/packages
+**/Publish
+/TheGardenerApiCore/.config
+
+*.nupkg
+
+
+**/obj
+**/bin
+**/logs
+
+# Ignore Puppeteer artifacts
+/TheGardenerApiCore/.local-chromium
+
+docker
+
+# Configuration files with secrets
+appsettings.Development.json
+appsettings.Production.json
+**/appsettings.*.json
+!appsettings.json
+
+# User secrets
+secrets.json

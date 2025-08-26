@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Builder Helper</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0 1rem;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step.inactive .step-number {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #667eea;
+        }
+        
+        .day-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #28a745;
+            transition: transform 0.3s ease;
+        }
+        
+        .day-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .verse-text {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 4px solid #ffc107;
+            font-style: italic;
+            margin: 1rem 0;
+        }
+        
+        .quote-text {
+            background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 4px solid #9c27b0;
+            margin: 1rem 0;
+        }
+        
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s ease;
+        }
+        
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-success, .btn-outline-primary {
+                margin: 0.5rem 0;
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container py-5">
+            <div class="main-container">
+                <div class="header">
+                    <h1><i class="fas fa-seedling me-3"></i>Habit Builder Helper 1.0</h1>
+                    <p class="mb-0">Build better habits with personalized 7-day plans</p>
+                </div>
+                
+                <div class="p-4">
+                    <!-- Step Indicator -->
+                    <div class="step-indicator">
+                        <div class="step" :class="{ active: currentStep === 1, completed: currentStep > 1 }">
+                            <div class="step-number">1</div>
+                            <span>Choose Habit</span>
+                        </div>
+                        <div class="step" :class="{ active: currentStep === 2, completed: currentStep > 2, inactive: currentStep < 2 }">
+                            <div class="step-number">2</div>
+                            <span>Answer Questions</span>
+                        </div>
+                        <div class="step" :class="{ active: currentStep === 3, inactive: currentStep < 3 }">
+                            <div class="step-number">3</div>
+                            <span>Get Your Plan</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 1: Habit Input -->
+                    <transition name="fade">
+                        <div v-if="currentStep === 1" class="text-center">
+                            <h3 class="mb-4">What habit would you like to improve?</h3>
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <input 
+                                        v-model="habit" 
+                                        @keyup.enter="fetchQuestions"
+                                        type="text" 
+                                        class="form-control form-control-lg text-center" 
+                                        placeholder="e.g., reading, exercise, meditation..."
+                                        :disabled="loadingQuestions"
+                                    >
+                                    <button 
+                                        @click="fetchQuestions" 
+                                        class="btn btn-primary btn-lg mt-3"
+                                        :disabled="!habit.trim() || loadingQuestions"
+                                    >
+                                        <span v-if="loadingQuestions" class="loading-spinner me-2"></span>
+                                        {{ loadingQuestions ? 'Getting Questions...' : 'Get Started' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                    
+                    <!-- Step 2: Questions -->
+                    <transition name="fade">
+                        <div v-if="currentStep === 2 && questions.length > 0">
+                            <h3 class="text-center mb-4">Tell us more about your {{ habit }} habit</h3>
+                            <div class="row justify-content-center">
+                                <div class="col-md-8">
+                                    <div v-for="(question, index) in questions" :key="question.id" class="question-card">
+                                        <h5 class="mb-3">{{ index + 1 }}. {{ question.text }}</h5>
+                                        
+                                        <!-- Single Choice Question -->
+                                        <div v-if="question.type === 'single-choice'" class="mb-3">
+                                            <div v-for="(option, optionIndex) in question.options" :key="optionIndex" class="form-check mb-2">
+                                                <input 
+                                                    v-model="answers[question.id]" 
+                                                    :value="option"
+                                                    :id="`${question.id}_${optionIndex}`"
+                                                    class="form-check-input" 
+                                                    type="radio" 
+                                                    :name="question.id"
+                                                >
+                                                <label :for="`${question.id}_${optionIndex}`" class="form-check-label">
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Text Question -->
+                                        <div v-if="question.type === 'text'" class="mb-3">
+                                            <textarea 
+                                                v-model="answers[question.id]"
+                                                class="form-control" 
+                                                rows="3" 
+                                                :placeholder="'Share your thoughts...'"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <button 
+                                            @click="generatePlan" 
+                                            class="btn btn-primary btn-lg"
+                                            :disabled="!allQuestionsAnswered || generatingPlan"
+                                        >
+                                            <span v-if="generatingPlan" class="loading-spinner me-2"></span>
+                                            {{ generatingPlan ? 'Creating Your Plan...' : 'Create My 7-Day Plan' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                    
+                    <!-- Step 3: Plan Results -->
+                    <transition name="fade">
+                        <div v-if="currentStep === 3 && plan" id="plan-content">
+                            <div class="text-center mb-4">
+                                <h2>{{ plan.planTitle }}</h2>
+                                <p class="text-muted">Your personalized 7-day habit building plan</p>
+                            </div>
+                            
+                            <div class="row">
+                                <div v-for="day in plan.daily" :key="day.day" class="col-md-6 mb-3">
+                                    <div class="day-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="badge bg-primary rounded-pill me-3" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                                                Day {{ day.day }}
+                                            </div>
+                                        </div>
+                                        
+                                        <h5 class="mb-3">
+                                            <i class="fas fa-tasks me-2 text-primary"></i>
+                                            Micro-Action
+                                        </h5>
+                                        <p class="mb-3">{{ day.microAction }}</p>
+                                        
+                                        <h6 class="mb-2">
+                                            <i class="fas fa-lightbulb me-2 text-warning"></i>
+                                            Reflection
+                                        </h6>
+                                        <p class="mb-3 text-muted">{{ day.reflection }}</p>
+                                        
+                                        <div v-if="day.verseText" class="verse-text">
+                                            <h6 class="mb-2">
+                                                <i class="fas fa-book me-2"></i>
+                                                {{ day.verseReference }}
+                                            </h6>
+                                            <p class="mb-0">{{ day.verseText }}</p>
+                                        </div>
+                                        
+                                        <div v-if="day.quote" class="quote-text">
+                                            <h6 class="mb-2">
+                                                <i class="fas fa-quote-left me-2"></i>
+                                                Daily Quote
+                                            </h6>
+                                            <p class="mb-1">"{{ day.quote }}"</p>
+                                            <small class="text-muted">- {{ day.quoteAuthor }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <div class="action-buttons">
+                                    <button 
+                                        @click="downloadPDF" 
+                                        class="btn btn-success btn-lg"
+                                        :disabled="generatingPDF"
+                                    >
+                                        <span v-if="generatingPDF" class="loading-spinner me-2"></span>
+                                        <i v-if="!generatingPDF" class="fas fa-download me-2"></i>
+                                        {{ generatingPDF ? 'Generating PDF...' : 'Download PDF' }}
+                                    </button>
+                                    <button @click="startOver" class="btn btn-outline-primary btn-lg">
+                                        <i class="fas fa-redo me-2"></i>
+                                        Create Another Plan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                    
+                    <!-- Error Display -->
+                    <div v-if="error" class="alert alert-danger mt-3" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ error }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
