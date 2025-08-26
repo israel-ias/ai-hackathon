@@ -4,12 +4,12 @@ A personalized 7-day habit building application powered by AI, providing Christi
 
 ## Features
 
-- ? **AI-Powered Personalization**: Dynamic questions based on your chosen habit
-- ?? **7-Day Micro-Habit Plans**: Actionable daily tasks under 10 minutes
-- ?? **Bible Integration**: Relevant verses with full text from KJV translation
-- ?? **Inspirational Quotes**: Daily motivation from famous personalities
-- ?? **PDF Export**: Download your plan as a beautiful PDF document
-- ?? **Modern UI**: Responsive Vue.js frontend with elegant design
+- **AI-Powered Personalization**: Dynamic questions based on your chosen habit
+- **7-Day Micro-Habit Plans**: Actionable daily tasks under 10 minutes
+- **Bible Integration**: Relevant verses with full text from KJV translation
+- **Inspirational Quotes**: Daily motivation from famous personalities
+- **PDF Export**: Download your plan as a beautiful PDF document
+- **Modern UI**: Responsive Vue.js frontend with elegant design
 
 ## Prerequisites
 
